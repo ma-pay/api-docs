@@ -1,0 +1,2165 @@
+{
+  "openapi" : "3.0.0",
+  "info" : {
+    "version" : "v3-oas3",
+    "x-logo" : {
+      "url" : "/static/logo.png",
+      "backgroundColor" : null,
+      "altText" : "PaySelection logo"
+    },
+    "title" : "PaySelection",
+    "contact" : {
+      "name" : "API support",
+      "email" : "support@payselection.com"
+    },
+    "description" : "PaySelection API specification\n\n\n# Request signature\n  All types of messages contain the parameter X-REQUEST-SIGNATURE in the HTTP header, which contains the test value of the request, calculated using the HMAC algorithm. When implementing message validation, pay attention to the following points:\n  \n  Message contains:\n  \n      1 Reguest method\n      2 URL\n      3 X-SITE-ID\n      4 X-REQUEST-ID\n      5 Request body\n  \n  Example:\n  \n      POST\n      /payments/requests/single\n      16\n      1qazxsw23edc\n      {\"Amount\": \"123\", \"Currency\": \"RUB\", \"ExtraData\": {\"custom\": \"field\", \"key\": \"value\"}, \"CustomerInfo\": {\"Address\": \"string\", \"Country\": \"string\", \"Email\": \"string\", \"Language\": \"string\", \"Phone\": \"string\", \"Town\": \"string\", \"ZIP\": \"string\"}, \"Description\": \"string\", \"OrderId\": \"string\", \"PaymentMethod\": \"card\", \"PaymentDetails\": {\"CardholderName\": \"string\", \"CardNumber\": \"411111******1111\", \"CVC\": \"987\", \"ExpMonth\": \"12\", \"ExpYear\": \"22\"}, \"RebillFlag\": true}\n       \n  \n  Use parameter secret as the key, example:\n  \n      \"sk16\" \n  \n  Hash is calculated by the SHA256 function (we get the data in hexadecimal (!) encoding in lower case):\n  \n      \"e31f6486797d4d9677a42b53435f0734ee7eae07799a1cad7569df2a9bf2dfb2\" \n  \n  Sites for online signature generation verification::\n  \n      http://beautifytools.com/hmac-generator.php\n  \n  X-REQUEST-SIGNATURE sample (Python)::\n  \n      import hashlib\n      import hmac\n\n      def calc_signature(body: str, site_secret_value: str) -> str:\n          signatire = hmac.new(\n            key=site_secret_value.decode(),\n            msg=body.decode(),\n            digestmod=hashlib.sha256,\n          )\n          return signatire.hexdigest()\n      \n      \n  Signature sample (PHP):\n  \n  \n        function getSignature($body, $secretKey)\n          {\n              $hash = hash_hmac('sha256', $body, $secretKey, false);\n              return $hash;\n          }\n\n\n# Webhook signature\n   X-WEBHOOK-SIGNATURE calculated in the same way as [Request signature](#section/Request-signature), excluding X-REQUEST-ID.\n  \n  Message contains:\n  \n      1 Reguest method\n      2 URL (Notification URL to which WEBHOOK is sent)\n      3 X-SITE-ID\n      4 Request body\n  \n  Example:\n  \n      POST\n      https://webhook.site/notification/\n      16\n      {\"Event\": \"Payment\", \"TransactionId\": \"GE00000000000007\", \"OrderId\": \"Ilya test\", \"Amount\": \"152.12\", \"Currency\": \"RUB\", \"DateTime\": \"16.09.2019 16.52.41\", \"IsTest\": 1, \"Email\": \"test@payselection.com\", \"Phone\": \"+1234567567890\", \"Description\": \"Test transaction\", \"CardMasked\": \"411111******1111\", \"CardHolder\": \"test card\", \"RebillId\": \"GE00000000000007\", \"ExpirationDate\": \"01/20\"}\n  \n  Use parameter secret as the key, example:\n  \n      \"sk16\" \n  \n  Hash is calculated by the SHA256 function (we get the data in hexadecimal (!) encoding in lower case):\n  \n      \"b607fcb14ef5c903ba7ef36fca653bf2c994d10e637fc1ad547f48121bf6744c\"               \n  \n  # Testing\n  \n  Test cards:\n  \n    * 5500081528083771 3DS SUССESS PAYMENT, SUССESS PAYOUT, SUCCESS REBILL\n    * 4021050993225905 3DS FAIL PAYMENT, FAIL PAYOUT\n    * 4129436949329530 non3DS SUССESS PAYMENT, SUCCESS PAYOUT, FAIL REBILL\n    * 5120196445879588 non3DS FAIL PAYMENT, FAIL PAYOUT\n"
+  },
+  "paths" : {
+    "/orders/{OrderId}" : {
+      "get" : {
+        "tags" : [ "operations" ],
+        "description" : "Get status by OrderId.",
+        "operationId" : "/orders/{OrderId}:",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "OrderId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OrderIdResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Order not found"
+          }
+        }
+      }
+    },
+    "/transactions/{transactionId}" : {
+      "get" : {
+        "tags" : [ "operations" ],
+        "description" : "Get status by TransactionId.",
+        "operationId" : "/transactions/{transactionId}:",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "transactionId",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TransactionIdResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Transaction not found"
+          }
+        }
+      }
+    },
+    "/payments/requests/single" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "One-step payment operation – funds are deducted from the card immediately after the operation is carried out. Additionally, it is possible to specify rebillFlag for enabling a recurring payments.",
+        "operationId" : "Pay",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NewPaymentRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewPaymentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FalsePaymentResponse"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DoublePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/requests/block" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "Two-step payment operation – funds are blocked on the card. If authorization was successful, compete the transaction in 5 days, if you do not confirm the operation with a Charge request within 5 days, the funds will be automatically canceled. Additionally, it is possible to specify rebillFlag for enabling a recurring payments.",
+        "operationId" : "Block",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NewPaymentRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewPaymentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FalsePaymentResponse"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DoublePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/requests/rebill" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "An operation of automatic funds deduction from a previously linked card.",
+        "operationId" : "Rebill",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RebillRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewPaymentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FalsePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/confirmation" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "Is used by Pay or Block operations with 3DS Secure after receiving the results of authentication from the bank to complete a one-step\two-step payment operation.",
+        "operationId" : "Сonfirm",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ConfirmationRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "allOf" : [ {
+                    "$ref" : "#/components/schemas/NewPaymentResponse"
+                  }, {
+                    "type" : "object",
+                    "properties" : {
+                      "RebillId" : {
+                        "$ref" : "#/components/schemas/RebillId"
+                      }
+                    }
+                  } ]
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FalsePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/refund" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "Only a successful transaction can be refunded.",
+        "operationId" : "Refund",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RefundRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewPaymentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FalsePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/cancellation" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "Unblocking funds on card during the two-step payment operation executed earlier.",
+        "operationId" : "Cancel",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PaymentCancelRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewPaymentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FalsePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/charge" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "Charge funds from the card during the two-step payment operation executed earlier.",
+        "operationId" : "Charge",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PaymentChargeRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewPaymentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FalsePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/unsubscribe" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "Cancel recurrent payment.",
+        "operationId" : "Unsubscribe",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UnsubscribeRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewUnsubscribeResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid"
+          }
+        }
+      }
+    },
+    "/payouts" : {
+      "post" : {
+        "tags" : [ "operations" ],
+        "description" : "Credit transaction is a type of transaction, where funds are transferred to cardholder's account. The funds are credited to the card within two banking days.",
+        "operationId" : "Payout",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NewPayoutRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewPaymentResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Request is not valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FalsePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/balance" : {
+      "get" : {
+        "tags" : [ "operations" ],
+        "description" : "The operation checks the available balance for Payout.",
+        "operationId" : "Balance",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-REQUEST-SIGNATURE"
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BalanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks" : {
+      "post" : {
+        "tags" : [ "webhooks" ],
+        "description" : "It is executed after the payment has been successfully completed - authorization received from the issuer. It serves to inform about the payment: the system sends a request to the web address of the merchant with payment information, and the merchant's service must record the fact of payment.",
+        "operationId" : "Webhooks",
+        "parameters" : [ {
+          "$ref" : "#/components/parameters/X-SITE-ID"
+        }, {
+          "$ref" : "#/components/parameters/X-WEBHOOK-SIGNATURE"
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Webhook"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created"
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "parameters" : {
+      "X-SITE-ID" : {
+        "in" : "header",
+        "name" : "X-SITE-ID",
+        "required" : true,
+        "description" : "ID merchant",
+        "schema" : {
+          "type" : "string"
+        }
+      },
+      "X-REQUEST-SIGNATURE" : {
+        "in" : "header",
+        "name" : "X-REQUEST-SIGNATURE",
+        "required" : true,
+        "description" : "Request signature. [description](#section/Request-signature)",
+        "schema" : {
+          "type" : "string"
+        }
+      },
+      "X-WEBHOOK-SIGNATURE" : {
+        "in" : "header",
+        "name" : "X-WEBHOOK-SIGNATURE",
+        "required" : true,
+        "description" : "Webhook signature. [description](#section/Webhook-signature)",
+        "schema" : {
+          "type" : "string"
+        }
+      },
+      "X-REQUEST-ID" : {
+        "in" : "header",
+        "name" : "X-REQUEST-ID",
+        "required" : true,
+        "description" : "Unique merchant ID request.",
+        "schema" : {
+          "type" : "string"
+        }
+      }
+    },
+    "schemas" : {
+      "OrderId" : {
+        "type" : "string",
+        "maxLength" : 100,
+        "minLength" : 1,
+        "description" : "Unique merchant order number.",
+        "pattern" : "^[\\x20-\\x7E№]+$"
+      },
+      "Country" : {
+        "type" : "string",
+        "maxLength" : 3,
+        "minLength" : 3,
+        "description" : "Country code of issuer card in ISO.",
+        "example" : "USA"
+      },
+      "Amount" : {
+        "type" : "string",
+        "maxLength" : 12,
+        "minLength" : 1,
+        "description" : "Transaction ammount. From 1 to 12 digits, dot ‘.’ is used as decimal separator.",
+        "example" : "123.45"
+      },
+      "Description" : {
+        "type" : "string",
+        "maxLength" : 250,
+        "minLength" : 1,
+        "description" : "Transaction description."
+      },
+      "Currency" : {
+        "type" : "string",
+        "maxLength" : 3,
+        "minLength" : 3,
+        "description" : "ISO currency in alphabetic code (USD, EUR, etc.)",
+        "example" : "EUR"
+      },
+      "RebillFlag" : {
+        "type" : "boolean",
+        "description" : "Flag of recurrent payment.",
+        "enum" : [ true, false ]
+      },
+      "ExtraData" : {
+        "type" : "object",
+        "description" : "Transaction additional fields."
+      },
+      "Extra" : {
+        "type" : "object",
+        "description" : "Extra options. JSON array may contain parameters (the first 3 are required):\n\n<b>success_url</b> - success url;\n<b>decline_url</b> - decline url;\n<b>cancel_url</b> – return url (return 'button');\n<b>account_id</b> – to return directly to the client's office;\n\nExample: \n{\"success_url\": \"http://server1.com/\", \"decline_url\": \"http://server2.com/\", \"cancel_url\": \"http://server3.com/\", “account_id”: “1122aass112”}\n\nIn the case of the automatic redirect of the customer: \n\n<b>success_url</b> - url for redirect after a successful transaction;\n<b>decline_url</b> - url for redirect after a decline transaction;\n"
+      },
+      "RebillId" : {
+        "type" : "string",
+        "maxLength" : 15,
+        "minLength" : 15,
+        "description" : "Recurrent payment ID.",
+        "example" : "GE00000000000001"
+      },
+      "PayOnlyFlag" : {
+        "type" : "boolean",
+        "description" : "A sign of the type of payment of the parent transaction. Possible values (default true): false - use the type of payment (BLOCK/PAY) of the parent transaction, true - use the payment type (always PAY).",
+        "enum" : [ true, false ]
+      },
+      "TransactionId" : {
+        "type" : "string",
+        "maxLength" : 15,
+        "minLength" : 15,
+        "description" : "Transaction ID in the system.",
+        "example" : "GE00000000000001"
+      },
+      "QiwiNumber" : {
+        "type" : "string",
+        "maxLength" : 19,
+        "minLength" : 12,
+        "description" : "QIWI Number. 12 to 19 digits without spaces.",
+        "example" : "79151234567"
+      },
+      "CardNumber" : {
+        "type" : "string",
+        "maxLength" : 19,
+        "minLength" : 12,
+        "description" : "Card number. Luhn validation. 12 to 19 digits without spaces.",
+        "example" : "4129436949329530"
+      },
+      "ExpMonth" : {
+        "type" : "string",
+        "maxLength" : 2,
+        "minLength" : 2,
+        "minimum" : 1,
+        "maximum" : 12,
+        "description" : "Card expire mounth. 2 figures with a leading zero.",
+        "example" : "06"
+      },
+      "ExpYear" : {
+        "type" : "string",
+        "maxLength" : 2,
+        "minLength" : 2,
+        "description" : "Card expire year. Last 2 figures of the year.",
+        "example" : "22"
+      },
+      "CardHolder" : {
+        "type" : "string",
+        "maxLength" : 40,
+        "minLength" : 1,
+        "description" : "Cardholder name (on the front of the card). Acceptable symbols[a-Z.,-].",
+        "example" : "Card Holder"
+      },
+      "CVC" : {
+        "type" : "string",
+        "maxLength" : 3,
+        "minLength" : 3,
+        "description" : "CVC2/CVV2. 3 digits.",
+        "example" : "789"
+      },
+      "Email" : {
+        "type" : "string",
+        "format" : "email",
+        "description" : "customer email for recurrent payments. This email should not be transferred to the bank, this email to inform customer - saved in the transaction."
+      },
+      "Phone" : {
+        "type" : "string",
+        "maxLength" : 20,
+        "minLength" : 10,
+        "description" : "Customer phone in international format '+19991231212' (no gaps).",
+        "example" : "+19991231212"
+      },
+      "Language" : {
+        "type" : "string",
+        "maxLength" : 5,
+        "minLength" : 2,
+        "description" : "Language (For example: en, de).",
+        "example" : "en"
+      },
+      "Address" : {
+        "type" : "string",
+        "maxLength" : 200,
+        "minLength" : 1,
+        "description" : "Customer's address, specified at the registration of the card in the bank. May be present if the cardholder's address verification is supported."
+      },
+      "Town" : {
+        "type" : "string",
+        "maxLength" : 200,
+        "minLength" : 1,
+        "description" : "Customer's city, specified at the registration of the card in the bank. May be present if the cardholder's address verification is supported."
+      },
+      "ZIP" : {
+        "type" : "string",
+        "maxLength" : 20,
+        "minLength" : 1,
+        "description" : "Customer's postcode, specified when the card is in the bank. It may be present if the cardholder's address verification is supported."
+      },
+      "IP" : {
+        "type" : "string",
+        "format" : "ipv4",
+        "description" : "IP Address"
+      },
+      "ProcessingAmount" : {
+        "type" : "string",
+        "example" : "123.45",
+        "maxLength" : 12,
+        "minLength" : 1,
+        "description" : "Amount of payment in the currency in which the transaction was carried out in the bank. Matches the result from the processing."
+      },
+      "ProcessingCurrency" : {
+        "type" : "string",
+        "maxLength" : 3,
+        "minLength" : 3,
+        "description" : "The currency code in which the transaction was transferred to the bank. Matches the result from the processing.",
+        "example" : "EUR"
+      },
+      "AcsUrl" : {
+        "type" : "string",
+        "description" : "Redirect URL."
+      },
+      "PaRes" : {
+        "type" : "string",
+        "description" : "Encrypted response."
+      },
+      "PaReq" : {
+        "type" : "string",
+        "description" : "Encrypted query."
+      },
+      "MD" : {
+        "type" : "string",
+        "description" : "Special ID."
+      },
+      "redirectUrl" : {
+        "type" : "string",
+        "description" : "Redirect URL."
+      },
+      "redirectParams" : {
+        "type" : "string",
+        "description" : "Redirect URI with parameters:parameter_1_name=parameter_1_value&parameter_2_name=parameter_2_value&...."
+      },
+      "redirectTransId" : {
+        "type" : "string",
+        "description" : "Bank transaction ID."
+      },
+      "redirectMethod" : {
+        "type" : "string",
+        "description" : "HTTP method for redirect."
+      },
+      "TransactionState" : {
+        "type" : "string",
+        "description" : "Operation result"
+      },
+      "TODO_CHANGE_FIELD_SUCCESS_LOGIC" : {
+        "type" : "string",
+        "description" : "Operation flag.",
+        "enum" : [ true, false, "3DS", "REDIRECT" ]
+      },
+      "TransactionStatus" : {
+        "type" : "string",
+        "enum" : [ "new", "charged", "refunded", "failedrefund", "failed", "rejectedrefund", "rejected", "pending", "frozen", "cancel", "declined", "result_unknown", "filtered" ],
+        "description" : "Current transaction status."
+      },
+      "RemainingAmount" : {
+        "type" : "string",
+        "maxLength" : 12,
+        "minLength" : 1,
+        "description" : "Remain amount.",
+        "example" : "10.05"
+      },
+      "ErrorCode" : {
+        "type" : "string",
+        "description" : "Error code."
+      },
+      "ErrorDescription" : {
+        "type" : "string",
+        "description" : "Error description."
+      },
+      "ErrorMessage" : {
+        "type" : "string",
+        "description" : "Decline reason."
+      },
+      "Event" : {
+        "type" : "string",
+        "description" : "Payment."
+      },
+      "DateTime" : {
+        "type" : "string",
+        "format" : "date-time",
+        "description" : "Payment."
+      },
+      "CardMasked" : {
+        "type" : "string",
+        "maxLength" : 19,
+        "minLength" : 12,
+        "description" : "Masked PAN."
+      },
+      "IsTest" : {
+        "description" : "true - test; false - production.",
+        "type" : "boolean",
+        "enum" : [ true, false ]
+      },
+      "Status" : {
+        "type" : "string",
+        "enum" : [ "CHARGED", "BLOCKED" ],
+        "description" : "Post-authorization payment status: CHARGED for one-step payments, BLOCKED for two-step payments."
+      },
+      "Token" : {
+        "type" : "string",
+        "description" : "Token for recurring payments."
+      },
+      "ExpirationDate" : {
+        "type" : "string",
+        "description" : "Card expired date MM/YY."
+      },
+      "RRN" : {
+        "type" : "string",
+        "description" : "Bank transaction ID."
+      },
+      "Balance" : {
+        "type" : "string",
+        "maxLength" : 12,
+        "minLength" : 1,
+        "description" : "Available Payout ammount at the time of request.",
+        "example" : "10000.00"
+      },
+      "GenericResponse" : {
+        "type" : "object",
+        "properties" : {
+          "success" : {
+            "type" : "boolean"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "code" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "Order" : {
+        "type" : "object"
+      },
+      "Transaction" : {
+        "type" : "object"
+      },
+      "NewWebPayRequest" : {
+        "type" : "object",
+        "required" : [ "OrderId", "Amount", "Currency", "Extra", "Description" ],
+        "properties" : {
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          },
+          "description" : {
+            "$ref" : "#/components/schemas/Description"
+          },
+          "RebillFlag" : {
+            "$ref" : "#/components/schemas/RebillFlag"
+          },
+          "CustomerInfo" : {
+            "$ref" : "#/components/schemas/CustomerInfo"
+          },
+          "ExtraData" : {
+            "$ref" : "#/components/schemas/ExtraData"
+          },
+          "Extra" : {
+            "$ref" : "#/components/schemas/Extra"
+          }
+        }
+      },
+      "NewPaymentRequest" : {
+        "type" : "object",
+        "required" : [ "OrderId", "Amount", "Currency", "PaymentMethod", "Description", "CustomerInfo" ],
+        "discriminator" : {
+          "propertyName" : "PaymentMethod",
+          "mapping" : {
+            "Card" : "#/components/schemas/Card",
+            "Qiwi" : "#/components/schemas/Qiwi"
+          }
+        },
+        "properties" : {
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          },
+          "Description" : {
+            "$ref" : "#/components/schemas/Description"
+          },
+          "RebillFlag" : {
+            "$ref" : "#/components/schemas/RebillFlag"
+          },
+          "CustomerInfo" : {
+            "$ref" : "#/components/schemas/CustomerInfo"
+          },
+          "ExtraData" : {
+            "$ref" : "#/components/schemas/ExtraData"
+          },
+          "PaymentMethod" : {
+            "description" : "Payment Method",
+            "type" : "string"
+          }
+        }
+      },
+      "RebillRequest" : {
+        "type" : "object",
+        "required" : [ "OrderId", "Amount", "Currency", "RebillId" ],
+        "properties" : {
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          },
+          "Description" : {
+            "$ref" : "#/components/schemas/Description"
+          },
+          "RebillId" : {
+            "$ref" : "#/components/schemas/RebillId"
+          },
+          "PayOnlyFlag" : {
+            "$ref" : "#/components/schemas/PayOnlyFlag"
+          }
+        }
+      },
+      "ConfirmationRequest" : {
+        "type" : "object",
+        "required" : [ "OrderId", "PaRes", "MD", "TransactionId" ],
+        "properties" : {
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          },
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          },
+          "PaRes" : {
+            "$ref" : "#/components/schemas/PaRes"
+          },
+          "MD" : {
+            "$ref" : "#/components/schemas/MD"
+          }
+        }
+      },
+      "RefundRequest" : {
+        "type" : "object",
+        "required" : [ "Amount", "Currency", "TransactionId" ],
+        "properties" : {
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          }
+        }
+      },
+      "PaymentCancelRequest" : {
+        "type" : "object",
+        "required" : [ "Amount", "Currency", "TransactionId" ],
+        "properties" : {
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          }
+        }
+      },
+      "PaymentChargeRequest" : {
+        "type" : "object",
+        "required" : [ "Amount", "Currency", "TransactionId" ],
+        "properties" : {
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          }
+        }
+      },
+      "UnsubscribeRequest" : {
+        "type" : "object",
+        "required" : [ "RebillId" ],
+        "properties" : {
+          "RebillId" : {
+            "$ref" : "#/components/schemas/RebillId"
+          }
+        }
+      },
+      "NewPayoutRequest" : {
+        "type" : "object",
+        "required" : [ "OrderId", "Amount", "Currency", "Description", "PayoutMethod", "CustomerInfo" ],
+        "discriminator" : {
+          "propertyName" : "PayoutMethod",
+          "mapping" : {
+            "Card" : "#/components/schemas/PayoutCard",
+            "Qiwi" : "#/components/schemas/PayoutQiwi",
+            "Other" : "#/components/schemas/PayoutOther"
+          }
+        },
+        "properties" : {
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          },
+          "Description" : {
+            "$ref" : "#/components/schemas/Description"
+          },
+          "CustomerInfo" : {
+            "$ref" : "#/components/schemas/CustomerInfo"
+          },
+          "ExtraData" : {
+            "$ref" : "#/components/schemas/ExtraData"
+          },
+          "PayoutMethod" : {
+            "description" : "Payout Method",
+            "type" : "string"
+          }
+        }
+      },
+      "NewPayformRequest" : {
+        "type" : "object",
+        "required" : [ "successUrl", "errorUrl", "notifyUrl", "Amount", "Currency" ],
+        "properties" : {
+          "successUrl" : {
+            "type" : "string"
+          },
+          "errorUrl" : {
+            "type" : "string"
+          },
+          "notifyUrl" : {
+            "type" : "string"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          }
+        }
+      },
+      "NewPayformSuccessResponse" : {
+        "type" : "object",
+        "required" : [ "formUrl", "token" ],
+        "properties" : {
+          "formUrl" : {
+            "type" : "string"
+          },
+          "token" : {
+            "type" : "string"
+          }
+        }
+      },
+      "NewPaymentResponse" : {
+        "type" : "object",
+        "required" : [ "OrderId", "TransactionId", "Amount", "Currency" ],
+        "properties" : {
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          },
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          }
+        }
+      },
+      "NewTokenResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionState" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "true" : "#/components/schemas/TokenResponse",
+            "false" : "#/components/schemas/FalseTokenResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "Transaction status",
+            "type" : "string"
+          }
+        }
+      },
+      "TokenResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewTokenResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Token" ],
+          "properties" : {
+            "Token" : {
+              "$ref" : "#/components/schemas/Token"
+            }
+          }
+        } ]
+      },
+      "FalseTokenResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewTokenResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Error" ],
+          "properties" : {
+            "Error" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "AddDetails" : {
+        "type" : "object",
+        "required" : [ "TransactionId", "OrderId" ],
+        "description" : "qwe",
+        "properties" : {
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          },
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          }
+        }
+      },
+      "AnyValue" : {
+        "type" : "object",
+        "nullable" : true,
+        "description" : "Can be any values, including `null`.",
+        "title" : "NULL"
+      },
+      "FalsePaymentResponse" : {
+        "type" : "object",
+        "required" : [ "AddDetails", "Code", "Description" ],
+        "properties" : {
+          "Code" : {
+            "$ref" : "#/components/schemas/ErrorCode"
+          },
+          "Description" : {
+            "$ref" : "#/components/schemas/ErrorDescription"
+          },
+          "AddDetails" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/AnyValue"
+            }, {
+              "$ref" : "#/components/schemas/AddDetails"
+            } ]
+          }
+        }
+      },
+      "DoublePaymentResponse" : {
+        "type" : "object",
+        "required" : [ "AddDetails", "Code", "Description" ],
+        "properties" : {
+          "Code" : {
+            "$ref" : "#/components/schemas/ErrorCode"
+          },
+          "Description" : {
+            "$ref" : "#/components/schemas/ErrorDescription"
+          },
+          "AddDetails" : {
+            "type" : "object",
+            "required" : [ "TransactionId", "OrderId" ],
+            "properties" : {
+              "OrderId" : {
+                "$ref" : "#/components/schemas/OrderId"
+              },
+              "TransactionId" : {
+                "$ref" : "#/components/schemas/TransactionId"
+              }
+            }
+          }
+        }
+      },
+      "NewRebillResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionId", "TransactionState" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "success" : "#/components/schemas/RebillResponse",
+            "declined" : "#/components/schemas/FalseRebillResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "Transaction state",
+            "type" : "string"
+          },
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          }
+        }
+      },
+      "RebillResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewRebillResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Amount", "Currency", "ProcessingAmount", "ProcessingCurrency", "TransactionStatus" ],
+          "properties" : {
+            "Amount" : {
+              "$ref" : "#/components/schemas/Amount"
+            },
+            "Currency" : {
+              "$ref" : "#/components/schemas/Currency"
+            },
+            "ProcessingAmount" : {
+              "$ref" : "#/components/schemas/ProcessingAmount"
+            },
+            "ProcessingCurrency" : {
+              "$ref" : "#/components/schemas/ProcessingCurrency"
+            },
+            "TransactionStatus" : {
+              "$ref" : "#/components/schemas/TransactionStatus"
+            },
+            "RebillId" : {
+              "$ref" : "#/components/schemas/RebillId"
+            }
+          }
+        } ]
+      },
+      "FalseRebillResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewRebillResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Error" ],
+          "properties" : {
+            "Error" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "NewRefundResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionId", "TransactionState" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "true" : "#/components/schemas/RefundResponse",
+            "false" : "#/components/schemas/FalseRefundResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "Transaction state",
+            "type" : "string"
+          },
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          }
+        }
+      },
+      "RefundResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewRefundResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Amount", "Currency", "ProcessingAmount", "ProcessingCurrency", "TransactionStatus", "newAmount" ],
+          "properties" : {
+            "Amount" : {
+              "$ref" : "#/components/schemas/Amount"
+            },
+            "Currency" : {
+              "$ref" : "#/components/schemas/Currency"
+            },
+            "ProcessingAmount" : {
+              "$ref" : "#/components/schemas/ProcessingAmount"
+            },
+            "ProcessingCurrency" : {
+              "$ref" : "#/components/schemas/ProcessingCurrency"
+            },
+            "TransactionStatus" : {
+              "$ref" : "#/components/schemas/TransactionStatus"
+            },
+            "RemainingAmount" : {
+              "$ref" : "#/components/schemas/RemainingAmount"
+            }
+          }
+        } ]
+      },
+      "FalseRefundResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewRefundResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Error" ],
+          "properties" : {
+            "Error" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "NewCancelResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionId", "TransactionState" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "true" : "#/components/schemas/CancelResponse",
+            "false" : "#/components/schemas/FalseCancelResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "Transaction state",
+            "type" : "string"
+          },
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          }
+        }
+      },
+      "CancelResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewCancelResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Amount", "Currency", "ProcessingAmount", "ProcessingCurrency", "TransactionStatus" ],
+          "properties" : {
+            "Amount" : {
+              "$ref" : "#/components/schemas/Amount"
+            },
+            "Currency" : {
+              "$ref" : "#/components/schemas/Currency"
+            },
+            "ProcessingAmount" : {
+              "$ref" : "#/components/schemas/ProcessingAmount"
+            },
+            "ProcessingCurrency" : {
+              "$ref" : "#/components/schemas/ProcessingCurrency"
+            },
+            "TransactionStatus" : {
+              "$ref" : "#/components/schemas/TransactionStatus"
+            }
+          }
+        } ]
+      },
+      "FalseCancelResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewCancelResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Error" ],
+          "properties" : {
+            "Error" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "NewChargeResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionId", "TransactionState" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "true" : "#/components/schemas/ChargeResponse",
+            "false" : "#/components/schemas/FalseChargeResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "Transaction state",
+            "type" : "string"
+          },
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          }
+        }
+      },
+      "ChargeResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewChargeResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Amount", "Currency", "ProcessingAmount", "ProcessingCurrency", "TransactionStatus", "newAmount" ],
+          "properties" : {
+            "Amount" : {
+              "$ref" : "#/components/schemas/Amount"
+            },
+            "Currency" : {
+              "$ref" : "#/components/schemas/Currency"
+            },
+            "ProcessingAmount" : {
+              "$ref" : "#/components/schemas/ProcessingAmount"
+            },
+            "ProcessingCurrency" : {
+              "$ref" : "#/components/schemas/ProcessingCurrency"
+            },
+            "TransactionStatus" : {
+              "$ref" : "#/components/schemas/TransactionStatus"
+            },
+            "RemainingAmount" : {
+              "$ref" : "#/components/schemas/RemainingAmount"
+            },
+            "RebillId" : {
+              "$ref" : "#/components/schemas/RebillId"
+            }
+          }
+        } ]
+      },
+      "FalseChargeResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewChargeResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Error" ],
+          "properties" : {
+            "Error" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "NewUnsubscribeResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionState" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "true" : "#/components/schemas/UnsubscribeResponse",
+            "false" : "#/components/schemas/FalseUnsubscribeResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "Transaction state",
+            "type" : "string"
+          }
+        }
+      },
+      "UnsubscribeResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewUnsubscribeResponse"
+        } ]
+      },
+      "FalseUnsubscribeResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewUnsubscribeResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Error" ],
+          "properties" : {
+            "Error" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "NewPayoutResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionState", "OrderId" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "success" : "#/components/schemas/PayoutResponse",
+            "declined" : "#/components/schemas/FalsePayoutResponse",
+            "pending" : "#/components/schemas/FalsePayoutResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "success",
+            "type" : "string"
+          },
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          }
+        }
+      },
+      "PayoutResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewPayoutResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "TransactionId", "Amount", "Currency", "TransactionStatus" ],
+          "properties" : {
+            "TransactionId" : {
+              "$ref" : "#/components/schemas/TransactionId"
+            },
+            "Amount" : {
+              "$ref" : "#/components/schemas/Amount"
+            },
+            "Currency" : {
+              "$ref" : "#/components/schemas/Currency"
+            },
+            "TransactionStatus" : {
+              "$ref" : "#/components/schemas/TransactionStatus"
+            }
+          }
+        } ]
+      },
+      "FalsePayoutResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewPayoutResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "Error" ],
+          "properties" : {
+            "Error" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "BalanceResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionState" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "success" : "#/components/schemas/NewBalanceResponse",
+            "declined" : "#/components/schemas/ErrorBalanceResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "TransactionState",
+            "type" : "string"
+          },
+          "Description" : {
+            "$ref" : "#/components/schemas/Description"
+          }
+        }
+      },
+      "PayoutConfirmationResponse" : {
+        "type" : "object"
+      },
+      "PaymentMethod" : {
+        "type" : "object"
+      },
+      "CardDetails" : {
+        "type" : "object",
+        "required" : [ "CardNumber", "ExpMonth", "ExpYear", "CardholderName", "CVC" ],
+        "properties" : {
+          "CardNumber" : {
+            "$ref" : "#/components/schemas/CardNumber"
+          },
+          "ExpMonth" : {
+            "$ref" : "#/components/schemas/ExpMonth"
+          },
+          "ExpYear" : {
+            "$ref" : "#/components/schemas/ExpYear"
+          },
+          "CardholderName" : {
+            "$ref" : "#/components/schemas/CardHolder"
+          },
+          "CVC" : {
+            "$ref" : "#/components/schemas/CVC"
+          }
+        }
+      },
+      "Card" : {
+        "required" : [ "PaymentDetails" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewPaymentRequest"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "PaymentDetails" : {
+              "$ref" : "#/components/schemas/CardDetails"
+            }
+          }
+        } ]
+      },
+      "Qiwi" : {
+        "required" : [ "PaymentDetails" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewPaymentRequest"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "PaymentDetails" : {
+              "type" : "object",
+              "required" : [ "QiwiNumber" ],
+              "properties" : {
+                "QiwiNumber" : {
+                  "$ref" : "#/components/schemas/QiwiNumber"
+                }
+              }
+            }
+          }
+        } ]
+      },
+      "PayoutCard" : {
+        "required" : [ "PayoutDetails" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewPayoutRequest"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "PayoutDetails" : {
+              "type" : "object",
+              "required" : [ "CardNumber", "CardholderName" ],
+              "properties" : {
+                "CardNumber" : {
+                  "$ref" : "#/components/schemas/CardNumber"
+                },
+                "CardholderName" : {
+                  "$ref" : "#/components/schemas/CardHolder"
+                }
+              }
+            }
+          }
+        } ]
+      },
+      "PayoutQiwi" : {
+        "required" : [ "PayoutDetails" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewPayoutRequest"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "PayoutDetails" : {
+              "type" : "object",
+              "required" : [ "QiwiNumber" ],
+              "properties" : {
+                "QiwiNumber" : {
+                  "$ref" : "#/components/schemas/QiwiNumber"
+                }
+              }
+            }
+          }
+        } ]
+      },
+      "PayoutOther" : {
+        "required" : [ "PayoutDetails" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/NewPayoutRequest"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "PayoutDetails" : {
+              "type" : "object"
+            }
+          }
+        } ]
+      },
+      "NewResponse" : {
+        "type" : "object",
+        "properties" : {
+          "TransactionId" : {
+            "type" : "integer"
+          },
+          "Amount" : {
+            "type" : "integer"
+          },
+          "Currency" : {
+            "type" : "string"
+          },
+          "ProcessingAmount" : {
+            "type" : "integer"
+          },
+          "ProcessingCurrency" : {
+            "type" : "string"
+          },
+          "TransactionStatus" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ErrorResponse" : {
+        "type" : "object",
+        "required" : [ "Code", "Description" ],
+        "properties" : {
+          "Code" : {
+            "$ref" : "#/components/schemas/ErrorCode"
+          },
+          "Description" : {
+            "$ref" : "#/components/schemas/ErrorDescription"
+          }
+        }
+      },
+      "CustomerInfo" : {
+        "type" : "object",
+        "required" : [ "Ip" ],
+        "properties" : {
+          "Email" : {
+            "$ref" : "#/components/schemas/Email"
+          },
+          "Phone" : {
+            "$ref" : "#/components/schemas/Phone"
+          },
+          "Language" : {
+            "$ref" : "#/components/schemas/Language"
+          },
+          "Address" : {
+            "$ref" : "#/components/schemas/Address"
+          },
+          "Town" : {
+            "$ref" : "#/components/schemas/Town"
+          },
+          "ZIP" : {
+            "$ref" : "#/components/schemas/ZIP"
+          },
+          "Country" : {
+            "$ref" : "#/components/schemas/Country"
+          },
+          "IP" : {
+            "$ref" : "#/components/schemas/IP"
+          }
+        }
+      },
+      "Webhook" : {
+        "type" : "object",
+        "required" : [ "Event", "TransactionId", "OrderId", "Amount", "Currency", "DateTime", "IsTest" ],
+        "discriminator" : {
+          "propertyName" : "Event",
+          "mapping" : {
+            "Payment" : "#/components/schemas/PaymentsWebhook",
+            "Block" : "#/components/schemas/PaymentsWebhook",
+            "Fail" : "#/components/schemas/FailWebhook",
+            "Refund" : "#/components/schemas/RefundWebhook",
+            "Cancel" : "#/components/schemas/CancelWebhook",
+            "3DS" : "#/components/schemas/3DSWebhook",
+            "Payout" : "#/components/schemas/PayoutWebhook"
+          }
+        },
+        "properties" : {
+          "Event" : {
+            "description" : "Event",
+            "type" : "string"
+          },
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          },
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          },
+          "Amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          },
+          "Currency" : {
+            "$ref" : "#/components/schemas/Currency"
+          },
+          "DateTime" : {
+            "$ref" : "#/components/schemas/DateTime"
+          },
+          "IsTest" : {
+            "$ref" : "#/components/schemas/IsTest"
+          },
+          "Email" : {
+            "$ref" : "#/components/schemas/Email"
+          },
+          "Phone" : {
+            "$ref" : "#/components/schemas/Phone"
+          },
+          "Description" : {
+            "$ref" : "#/components/schemas/Description"
+          },
+          "ExtraData" : {
+            "$ref" : "#/components/schemas/ExtraData"
+          }
+        }
+      },
+      "PaymentsWebhook" : {
+        "required" : [ "CardMasked" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Webhook"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "CardMasked" : {
+              "$ref" : "#/components/schemas/CardMasked"
+            },
+            "CardHolder" : {
+              "$ref" : "#/components/schemas/CardHolder"
+            },
+            "RebillId" : {
+              "$ref" : "#/components/schemas/RebillId"
+            },
+            "ExpirationDate" : {
+              "$ref" : "#/components/schemas/ExpirationDate"
+            },
+            "RRN" : {
+              "$ref" : "#/components/schemas/RRN"
+            }
+          }
+        } ]
+      },
+      "FailWebhook" : {
+        "required" : [ "CardMasked", "Status", "ErrorMessage" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Webhook"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "CardMasked" : {
+              "$ref" : "#/components/schemas/CardMasked"
+            },
+            "ErrorMessage" : {
+              "$ref" : "#/components/schemas/ErrorMessage"
+            },
+            "CardHolder" : {
+              "$ref" : "#/components/schemas/CardHolder"
+            },
+            "ExpirationDate" : {
+              "$ref" : "#/components/schemas/ExpirationDate"
+            },
+            "RRN" : {
+              "$ref" : "#/components/schemas/RRN"
+            }
+          }
+        } ]
+      },
+      "RefundWebhook" : {
+        "required" : [ "CardMasked", "RemainingAmount" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Webhook"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "CardMasked" : {
+              "$ref" : "#/components/schemas/CardMasked"
+            },
+            "CardHolder" : {
+              "$ref" : "#/components/schemas/CardHolder"
+            },
+            "RemainingAmount" : {
+              "$ref" : "#/components/schemas/RemainingAmount"
+            },
+            "ExpirationDate" : {
+              "$ref" : "#/components/schemas/ExpirationDate"
+            },
+            "RRN" : {
+              "$ref" : "#/components/schemas/RRN"
+            }
+          }
+        } ]
+      },
+      "CancelWebhook" : {
+        "required" : [ "CardMasked" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Webhook"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "CardMasked" : {
+              "$ref" : "#/components/schemas/CardMasked"
+            },
+            "CardHolder" : {
+              "$ref" : "#/components/schemas/CardHolder"
+            },
+            "ExpirationDate" : {
+              "$ref" : "#/components/schemas/ExpirationDate"
+            },
+            "RRN" : {
+              "$ref" : "#/components/schemas/RRN"
+            }
+          }
+        } ]
+      },
+      "3DSWebhook" : {
+        "required" : [ "PaRes", "PaReq", "MD" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Webhook"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "PaRes" : {
+              "$ref" : "#/components/schemas/PaRes"
+            },
+            "PaReq" : {
+              "$ref" : "#/components/schemas/PaReq"
+            },
+            "MD" : {
+              "$ref" : "#/components/schemas/MD"
+            }
+          }
+        } ]
+      },
+      "PayoutWebhook" : {
+        "required" : [ "CardMasked" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Webhook"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "CardMasked" : {
+              "$ref" : "#/components/schemas/CardMasked"
+            },
+            "CardHolder" : {
+              "$ref" : "#/components/schemas/CardHolder"
+            },
+            "RRN" : {
+              "$ref" : "#/components/schemas/RRN"
+            }
+          }
+        } ]
+      },
+      "NewBalanceResponse" : {
+        "required" : [ "Balance", "Currency" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/BalanceResponse"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "Balance" : {
+              "$ref" : "#/components/schemas/Balance"
+            },
+            "Currency" : {
+              "$ref" : "#/components/schemas/Currency"
+            }
+          }
+        } ]
+      },
+      "ErrorBalanceResponse" : {
+        "required" : [ "Error" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/BalanceResponse"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "Error" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "TransactionIdResponse" : {
+        "type" : "object",
+        "required" : [ "TransactionState", "TransactionStatus", "TransactionId", "OrderId" ],
+        "discriminator" : {
+          "propertyName" : "TransactionState",
+          "mapping" : {
+            "success" : "#/components/schemas/SuccessTransactionIdResponse",
+            "preauthorized" : "#/components/schemas/PreauthorizedTransactionIdResponse",
+            "pending" : "#/components/schemas/PendingTransactionIdResponse",
+            "declined" : "#/components/schemas/ErrorTransactionIdResponse",
+            "wait_for_3ds" : "#/components/schemas/3DSTransactionIdResponse",
+            "redirect" : "#/components/schemas/RedirectTransactionIdResponse"
+          }
+        },
+        "properties" : {
+          "TransactionState" : {
+            "description" : "Transaction state",
+            "type" : "string"
+          },
+          "TransactionId" : {
+            "$ref" : "#/components/schemas/TransactionId"
+          },
+          "OrderId" : {
+            "$ref" : "#/components/schemas/OrderId"
+          }
+        }
+      },
+      "NewTransactionIdResponse" : {
+        "type" : "object",
+        "required" : [ "StateDetails" ],
+        "properties" : {
+          "StateDetails" : {
+            "type" : "object",
+            "required" : [ "Amount", "Currency", "ProcessingAmount", "ProcessingCurrency" ],
+            "properties" : {
+              "Amount" : {
+                "$ref" : "#/components/schemas/Amount"
+              },
+              "Currency" : {
+                "$ref" : "#/components/schemas/Currency"
+              },
+              "ProcessingAmount" : {
+                "$ref" : "#/components/schemas/ProcessingAmount"
+              },
+              "ProcessingCurrency" : {
+                "$ref" : "#/components/schemas/ProcessingCurrency"
+              },
+              "RemainingAmount" : {
+                "$ref" : "#/components/schemas/RemainingAmount"
+              },
+              "RebillId" : {
+                "$ref" : "#/components/schemas/RebillId"
+              }
+            }
+          }
+        }
+      },
+      "SuccessTransactionIdResponse" : {
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/TransactionIdResponse"
+        }, {
+          "$ref" : "#/components/schemas/NewTransactionIdResponse"
+        } ]
+      },
+      "PreauthorizedTransactionIdResponse" : {
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/TransactionIdResponse"
+        }, {
+          "$ref" : "#/components/schemas/NewTransactionIdResponse"
+        } ]
+      },
+      "PendingTransactionIdResponse" : {
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/TransactionIdResponse"
+        }, {
+          "$ref" : "#/components/schemas/NewTransactionIdResponse"
+        } ]
+      },
+      "ErrorTransactionIdResponse" : {
+        "required" : [ "Error" ],
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/TransactionIdResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "StateDetails" ],
+          "properties" : {
+            "StateDetails" : {
+              "$ref" : "#/components/schemas/ErrorResponse"
+            }
+          }
+        } ]
+      },
+      "3DSTransactionIdResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/TransactionIdResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "StateDetails" ],
+          "properties" : {
+            "StateDetails" : {
+              "type" : "object",
+              "required" : [ "AcsUrl", "PaReq", "MD" ],
+              "properties" : {
+                "AcsUrl" : {
+                  "$ref" : "#/components/schemas/AcsUrl"
+                },
+                "PaReq" : {
+                  "$ref" : "#/components/schemas/PaReq"
+                },
+                "MD" : {
+                  "$ref" : "#/components/schemas/MD"
+                }
+              }
+            }
+          }
+        } ]
+      },
+      "RedirectTransactionIdResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/TransactionIdResponse"
+        }, {
+          "type" : "object",
+          "required" : [ "StateDetails" ],
+          "properties" : {
+            "StateDetails" : {
+              "type" : "object"
+            }
+          }
+        } ]
+      },
+      "OrderIdResponse" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/components/schemas/TransactionIdResponse"
+        }
+      }
+    }
+  },
+  "servers" : [ {
+    "description" : "SwaggerHub API Auto Mocking",
+    "url" : "https://gw1.payselection.com/v1/"
+  } ]
+}
